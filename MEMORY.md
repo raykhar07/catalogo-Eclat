@@ -1,7 +1,7 @@
 # MEMORY.md — estante. / catalogo-Éclat
 
 ## Resumen del proyecto
-- Catálogo tipo e-commerce/portafolio: **Express + Prisma (SQLite)** en backend, **React 19 + Vite + Tailwind 4** en frontend.
+- Catálogo tipo e-commerce/portafolio: **Express + Prisma (PostgreSQL)** en backend, **React 19 + Vite + Tailwind 4** en frontend.
 - Dos `package.json`: raíz (backend/tooling) y `client/` (frontend).
 - En producción, Express sirve API y `client/dist` desde el mismo puerto.
 
@@ -16,10 +16,11 @@
 - `npm run studio` — Prisma Studio.
 
 ## Base de datos / Prisma
-- SQLite: `prisma/products.db`. `DATABASE_URL` se resuelve relativo a `prisma/schema.prisma`.
+- PostgreSQL vía Prisma. `DATABASE_URL` debe ser una conexión Postgres (local Docker, Neon, Supabase, etc.).
 - Modelos: `Category`, `Product`, `User`, `Account`, `Order`.
 - `User.passwordHash` es opcional (usuarios OAuth). `Account` vincula proveedores (`google`, `github`) con `@@unique([provider, providerAccountId])`.
-- Tras cambios en schema: crear/aplicar migración; en Docker/prod usar `prisma migrate deploy`.
+- Tras cambios en schema: `npm run migrate`; en Docker/prod usar `prisma migrate deploy`.
+- Seed: `prisma/seed.ts` lee `scripts/products-export.json` (170 productos). Es destructivo.
 - `client/src/types.ts` duplica manualmente tipos; actualizar si cambia el esquema/API.
 
 ## Autenticación
@@ -41,8 +42,8 @@ Ver `.env.example`. Claves importantes:
 ## Docker
 - Archivos: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `docker/entrypoint.sh`.
 - Imagen multi-stage `node:20-bookworm-slim`; runtime ejecuta `prisma migrate deploy` y arranca `node dist/server/index.js`.
-- Compose monta volumen `app_data:/app/data` y fija `DATABASE_URL=file:/app/data/products.db`.
-- Para Docker local, usar `CLIENT_URL=http://localhost:3000`; en prod, dominio HTTPS real y callbacks OAuth registrados en Google/GitHub.
+- `docker-compose.yml` levanta `db` (Postgres 16) + `app`. Datos de Postgres en volumen `pg_data`.
+- Para Docker local, usar `CLIENT_URL=http://localhost:3000`; en prod, usar DB Postgres administrada (Neon/Supabase) y dominio HTTPS real para OAuth callbacks.
 
 ## Gotchas
 - `ts-node-dev` requiere `--project server/tsconfig.json`.
@@ -52,4 +53,4 @@ Ver `.env.example`. Claves importantes:
 - `Decimal` de Prisma se serializa a `number` en controllers.
 - `verbatimModuleSyntax` en client: usar `import type`.
 - Seed borra toda la DB.
-- SQLite en Docker = volumen persistente + instancia única.
+- En producción, usa PostgreSQL administrado (Neon/Supabase).

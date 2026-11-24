@@ -1,7 +1,7 @@
 # estante. — Catálogo de productos
 
 Catálogo de productos con buscador, filtros por categoría y precio, detalle de
-producto y un panel de administración. Backend en **Express + Prisma** (SQLite)
+producto y un panel de administración. Backend en **Express + Prisma** (PostgreSQL)
 y frontend en **React + Vite + Tailwind CSS**.
 
 ## Requisitos
@@ -18,14 +18,20 @@ npm install --prefix client
 
 ## Base de datos
 
-El archivo `.env` define la conexión:
+El archivo `.env` define la conexión a PostgreSQL:
 
 ```
-DATABASE_URL="file:./products.db"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/estante?schema=public"
 PORT=3000
 ```
 
-Crear la base de datos y cargar los datos de ejemplo (5 categorías y 15 productos):
+Necesitas una instancia de PostgreSQL local o remota. Con Docker, puedes levantar solo la DB:
+
+```bash
+docker compose up -d db
+```
+
+Crear el esquema y cargar los datos de ejemplo (5 categorías y 170 productos):
 
 ```bash
 npm run migrate
@@ -81,12 +87,12 @@ npm start
 
 ## Docker
 
-La app se puede ejecutar en un solo contenedor (API + frontend compilado + Prisma). La base SQLite se persiste en un volumen.
+El proyecto incluye `docker-compose.yml` con dos servicios: **PostgreSQL** (`db`) y la **app** (API + frontend compilado).
 
 ```bash
 # 1. Crea tu .env a partir de .env.example y completa los valores
-#    En Docker, usa CLIENT_URL=http://localhost:3000 (o tu dominio)
-#    y DATABASE_URL lo sobreescribe docker-compose a file:/app/data/products.db
+#    En Docker local, usa CLIENT_URL=http://localhost:3000
+#    docker-compose sobreescribe DATABASE_URL para apuntar al servicio db
 
 # 2. Construir y levantar
 docker compose up --build -d
@@ -97,8 +103,9 @@ docker compose logs -f app
 
 - La app queda en `http://localhost:3000`.
 - El entrypoint ejecuta `prisma migrate deploy` antes de iniciar el servidor.
-- La DB se guarda en el volumen `app_data` (`/app/data/products.db`).
-- Para producción, configura `JWT_SECRET`, `CLIENT_URL` y callbacks OAuth con tu dominio HTTPS real, y registra esos callbacks en Google/GitHub.
+- Los datos de PostgreSQL se persisten en el volumen `pg_data`.
+- Para cargar el catálogo de ejemplo: `docker compose exec app npm run seed` (el seed es destructivo).
+- Para producción (Render/Neon/Supabase), usa una `DATABASE_URL` de PostgreSQL administrado y configura `JWT_SECRET`, `CLIENT_URL` y callbacks OAuth con tu dominio HTTPS real.
 
 ## Estructura
 
@@ -106,10 +113,9 @@ docker compose logs -f app
 ├── scripts/
 │   └── smoke-test.js      Smoke test de la API (npm test)
 ├── prisma/
-│   ├── schema.prisma      Modelos Category y Product
-│   ├── seed.ts            Datos de ejemplo
-│   ├── migrations/        Migraciones de Prisma
-│   └── products.db        Base de datos SQLite
+│   ├── schema.prisma      Modelos (Category, Product, User, Account, Order)
+│   ├── seed.ts            Datos de ejemplo (170 productos)
+│   └── migrations/        Migraciones de Prisma (PostgreSQL)
 ├── server/
 │   └── src/
 │       ├── index.ts       Arranque de Express
@@ -152,6 +158,6 @@ Errores: siempre `{ "error": "mensaje" }` y, si falla la validación,
 
 ## Stack
 
-- Backend: Express, Prisma, SQLite, Zod
+- Backend: Express, Prisma, PostgreSQL, Zod
 - Frontend: React 19, Vite, React Router, Tailwind CSS 4
 - Tipado compartido: `client/src/types.ts` refleja los modelos de Prisma

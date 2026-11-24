@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Proyecto `estante.`: catálogo de productos. Backend Express + Prisma (SQLite) y frontend React + Vite + Tailwind 4. Dos `package.json` distintos (raíz = backend, `client/` = frontend).
+Proyecto `estante.`: catálogo de productos. Backend Express + Prisma (PostgreSQL) y frontend React + Vite + Tailwind 4. Dos `package.json` distintos (raíz = backend, `client/` = frontend).
 
 ## Propósito
 
@@ -22,8 +22,9 @@ Lo que NO tiene (y no debe "inventarse" sin que se pida): carrito, pagos, usuari
 
 ## Esquema de datos
 
-- SQLite en `prisma/products.db`; la ruta relativa de `DATABASE_URL` se resuelve respecto a `prisma/schema.prisma`.
-- Tras cambiar `schema.prisma`: `npm run migrate` (genera el cliente y aplica la migración). Si hay drift y `migrate dev` se queja en no-interactivo, borrar `prisma/migrations` y `prisma/products.db` y migrar de cero.
+- PostgreSQL vía Prisma (`DATABASE_URL` en `.env`). En local puedes usar Docker (`docker compose up -d db`) o una instancia remota (Neon/Supabase).
+- Tras cambiar `schema.prisma`: `npm run migrate` (genera el cliente y aplica la migración). Para despliegue/prod usar `npx prisma migrate deploy`.
+- El seed (`prisma/seed.ts`) lee `scripts/products-export.json` e inserta 5 categorías y 170 productos. **Borra datos existentes** antes de insertar.
 - `client/src/types.ts` **duplica manualmente** los modelos de Prisma (no hay codegen). Actualizarlo tras cada cambio de esquema.
 - Los controllers convierten `Prisma.Decimal` a `number` en `serialize()` antes de responder JSON; cualquier endpoint nuevo que devuelva productos debe hacer lo mismo.
 

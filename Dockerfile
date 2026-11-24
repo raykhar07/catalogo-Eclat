@@ -26,18 +26,20 @@ FROM node:20-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV DATABASE_URL="file:/app/data/products.db"
+
+# OpenSSL requerido por Prisma en Debian slim
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Runtime dependencies + Prisma client artifacts
 COPY --from=build /app/package.json /app/package-lock.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/scripts/products-export.json ./scripts/products-export.json
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/client/dist ./client/dist
 COPY docker/entrypoint.sh ./docker/entrypoint.sh
 
-# Prepare writable data directory for SQLite volume
-RUN mkdir -p /app/data && chown -R node:node /app/data && chmod +x ./docker/entrypoint.sh
+RUN chmod +x ./docker/entrypoint.sh && chown -R node:node /app
 
 EXPOSE 3000
 

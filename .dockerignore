@@ -36,6 +36,4 @@ Thumbs.db
 
 # Docs / local artifacts not needed in image
 README.md
-scripts/products-export.json
 scripts/update-catalog.js
-scripts/add-oauth-env.js
