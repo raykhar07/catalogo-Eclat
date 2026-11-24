@@ -32,7 +32,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/orders", orderRoutes);
 
 // Frontend compilado (solo existe tras `npm run build:client`)
-const clientDist = path.resolve(__dirname, "../../client/dist");
+const clientDist = path.resolve(process.cwd(), "client/dist");
 app.use(express.static(clientDist));
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api")) return next();
