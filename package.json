@@ -12,7 +12,7 @@
     "build": "npm run build:client && npm run build:server",
     "test": "node scripts/smoke-test.js",
     "test:auth": "jest --runInBand",
-    "start": "node dist/server/index.js",
+    "start": "node dist/server/src/index.js",
     "migrate": "prisma migrate dev",
     "seed": "prisma db seed",
     "studio": "prisma studio"

@@ -8,7 +8,7 @@
 ## Comandos clave (desde raíz)
 - `npm run dev` — backend `:3000` + Vite `:5173` (proxy `/api`).
 - `npm run build` — build client + server.
-- `npm start` — sirve `dist/server/index.js` (prod).
+- `npm start` — sirve `dist/server/src/index.js` (prod).
 - `npm test` — smoke test API (`scripts/smoke-test.js`, requiere `npm run build`, usa puerto 3111).
 - `npm run test:auth` — Jest auth tests.
 - `npm run migrate` — Prisma migrate dev.
@@ -41,7 +41,7 @@ Ver `.env.example`. Claves importantes:
 
 ## Docker
 - Archivos: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `docker/entrypoint.sh`.
-- Imagen multi-stage `node:20-bookworm-slim`; runtime ejecuta `prisma migrate deploy` y arranca `node dist/server/index.js`.
+- Imagen multi-stage `node:20-bookworm-slim`; runtime ejecuta `prisma migrate deploy` y arranca `node dist/server/src/index.js`.
 - `docker-compose.yml` levanta `db` (Postgres 16) + `app`. Datos de Postgres en volumen `pg_data`.
 - Para Docker local, usar `CLIENT_URL=http://localhost:3000`; en prod, usar DB Postgres administrada (Neon/Supabase) y dominio HTTPS real para OAuth callbacks.
 

@@ -14,8 +14,8 @@ Lo que NO tiene (y no debe "inventarse" sin que se pida): carrito, pagos, usuari
 ## Comandos (ejecutar desde la raíz, con npm de la raíz)
 
 - `npm run dev` — backend en :3000 y Vite en :5173 (proxy de `/api` → :3000). No existe `npm run dev` dentro de `client/` salvo `npm run dev --prefix client`.
-- `npm test` — smoke test de la API (`scripts/smoke-test.js`, 29 comprobaciones, sin framework). **Exige `npm run build` antes** porque arranca `dist/server/index.js`. Levanta su propio servidor en :3111, así que no interfiere con `npm run dev`. Crea y borra sus propios registros; sale con código 1 si algo falla. Detalle en la skill `tests`.
-- `npm run build && npm start` — build de client y server; `start` sirve API + SPA compilada desde :3000 (`dist/server/index.js`).
+- `npm test` — smoke test de la API (`scripts/smoke-test.js`, 29 comprobaciones, sin framework). **Exige `npm run build` antes** porque arranca `dist/server/src/index.js`. Levanta su propio servidor en :3111, así que no interfiere con `npm run dev`. Crea y borra sus propios registros; sale con código 1 si algo falla. Detalle en la skill `tests`.
+- `npm run build && npm start` — build de client y server; `start` sirve API + SPA compilada desde :3000 (`dist/server/src/index.js`).
 - `npm run migrate` / `npm run seed` / `npm run studio` — comandos de Prisma.
 - El seed (`prisma/seed.ts`) **borra toda la base de datos** (`deleteMany`) antes de insertar. Es destructivo.
 - `ts-node-dev` requiere `--project server/tsconfig.json`: el `tsconfig.json` raíz es un solution config (`"files": []`) y no compila nada por sí solo. `tsc -p server/tsconfig.json` compila el backend a `dist/server/`.

@@ -1,7 +1,7 @@
 /**
  * Smoke test de la API. No requiere framework: usa fetch nativo de Node 18+.
  *
- * 1. Levanta el servidor compilado (dist/server/index.js) en un puerto libre.
+ * 1. Levanta el servidor compilado (dist/server/src/index.js) en un puerto libre.
  * 2. Recorre los endpoints y verifica status + contenido.
  * 3. Limpia los registros que crea. Sale con código != 0 si algo falla.
  *
@@ -68,7 +68,7 @@ async function waitForServer(child) {
 async function run() {
   let child;
   try {
-    child = spawn(process.execPath, ["dist/server/index.js"], {
+    child = spawn(process.execPath, ["dist/server/src/index.js"], {
       cwd: ROOT,
       env: { ...process.env, PORT: String(PORT) },
       stdio: ["ignore", "pipe", "pipe"],
@@ -77,7 +77,7 @@ async function run() {
     const up = await waitForServer(child);
     if (!up) {
       console.error(
-        "No se pudo arrancar dist/server/index.js. Ejecuta `npm run build` antes de los tests."
+        "No se pudo arrancar dist/server/src/index.js. Ejecuta `npm run build` antes de los tests."
       );
       child.kill();
       process.exit(1);
