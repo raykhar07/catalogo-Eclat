@@ -42,10 +42,6 @@ export async function createOrder(req: AuthRequest, res: Response) {
     paymentMethod,
   } = req.body;
 
-  if (paymentMethod === "card") {
-    throw new ApiError(400, "Pago con tarjeta no disponible en modo demo");
-  }
-
   const product = await prisma.product.findUnique({
     where: { id: Number(productId) },
   });
@@ -69,6 +65,9 @@ export async function createOrder(req: AuthRequest, res: Response) {
     paymentMethod,
   };
 
+  let cardBrand: string | null = null;
+  let cardLast4: string | null = null;
+
   if (paymentMethod === "nequi") {
     paymentDetails.nequiPhone = req.body.nequiPhone;
   }
@@ -76,6 +75,14 @@ export async function createOrder(req: AuthRequest, res: Response) {
     paymentDetails.pseBank = req.body.pseBank;
     paymentDetails.psePersonType = req.body.psePersonType;
     paymentDetails.pseId = req.body.pseId;
+  }
+  if (paymentMethod === "card") {
+    const cardNumber = String(req.body.cardNumber ?? "").replace(/\s+/g, "");
+    cardBrand = getCardBrand(cardNumber);
+    cardLast4 = cardNumber.slice(-4) || null;
+    paymentDetails.cardHolder = req.body.cardHolder;
+    paymentDetails.cardLast4 = cardLast4;
+    paymentDetails.cardBrand = cardBrand;
   }
 
   const orderNumber = generateOrderNumber();
@@ -95,8 +102,8 @@ export async function createOrder(req: AuthRequest, res: Response) {
         buyerAddress,
         buyerCity,
         paymentMethod,
-        cardBrand: null,
-        cardLast4: null,
+        cardBrand,
+        cardLast4,
         paymentDetails: JSON.stringify(paymentDetails),
         status: "CONFIRMED",
       },
@@ -135,10 +142,6 @@ export async function createCartOrder(req: AuthRequest, res: Response) {
 
   const { items, buyerName, buyerEmail, buyerPhone, buyerAddress, buyerCity, paymentMethod } = req.body as any;
 
-  if (paymentMethod === "card") {
-    throw new ApiError(400, "Pago con tarjeta no disponible en modo demo");
-  }
-
   if (!Array.isArray(items) || items.length === 0) {
     throw new ApiError(400, "El carrito está vacío");
   }
@@ -162,11 +165,21 @@ export async function createCartOrder(req: AuthRequest, res: Response) {
   }
 
   const paymentDetails: Record<string, unknown> = { paymentMethod };
+  let cardBrand: string | null = null;
+  let cardLast4: string | null = null;
   if (paymentMethod === "nequi") paymentDetails.nequiPhone = req.body.nequiPhone;
   if (paymentMethod === "pse") {
     paymentDetails.pseBank = req.body.pseBank;
     paymentDetails.psePersonType = req.body.psePersonType;
     paymentDetails.pseId = req.body.pseId;
+  }
+  if (paymentMethod === "card") {
+    const cardNumber = String(req.body.cardNumber ?? "").replace(/\s+/g, "");
+    cardBrand = getCardBrand(cardNumber);
+    cardLast4 = cardNumber.slice(-4) || null;
+    paymentDetails.cardHolder = req.body.cardHolder;
+    paymentDetails.cardLast4 = cardLast4;
+    paymentDetails.cardBrand = cardBrand;
   }
 
   const orderNumber = generateOrderNumber();
@@ -199,8 +212,8 @@ export async function createCartOrder(req: AuthRequest, res: Response) {
         buyerAddress,
         buyerCity,
         paymentMethod,
-        cardBrand: null,
-        cardLast4: null,
+        cardBrand,
+        cardLast4,
         paymentDetails: JSON.stringify(paymentDetails),
         status: "CONFIRMED",
       },

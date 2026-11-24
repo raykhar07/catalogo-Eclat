@@ -92,6 +92,10 @@ export interface OrderCreateInput {
   pseBank?: string;
   psePersonType?: "natural" | "juridica";
   pseId?: string;
+  cardHolder?: string;
+  cardNumber?: string;
+  cardExpiry?: string;
+  cardCvv?: string;
 }
 
 export interface OrderResponse {

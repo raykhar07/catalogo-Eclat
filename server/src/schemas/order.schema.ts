@@ -18,14 +18,30 @@ export const createOrderSchema = z
     pseBank: z.string().optional(),
     psePersonType: z.enum(["natural", "juridica"]).optional(),
     pseId: z.string().optional(),
+    cardHolder: z.string().optional(),
+    cardNumber: z.string().optional(),
+    cardExpiry: z.string().optional(),
+    cardCvv: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.paymentMethod === "card") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Pago con tarjeta no disponible en modo demo",
-        path: ["paymentMethod"],
-      });
+      const holder = data.cardHolder?.trim() ?? "";
+      const number = (data.cardNumber ?? "").replace(/\s+/g, "");
+      const expiry = (data.cardExpiry ?? "").trim();
+      const cvv = (data.cardCvv ?? "").trim();
+
+      if (holder.length < 3) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nombre del titular requerido", path: ["cardHolder"] });
+      }
+      if (!/^\d{13,19}$/.test(number)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Número de tarjeta inválido", path: ["cardNumber"] });
+      }
+      if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(expiry)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vencimiento inválido (MM/AA)", path: ["cardExpiry"] });
+      }
+      if (!/^\d{3,4}$/.test(cvv)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "CVV inválido", path: ["cardCvv"] });
+      }
       return;
     }
 
@@ -89,14 +105,30 @@ export const createCartOrderSchema = z
     pseBank: z.string().optional(),
     psePersonType: z.enum(["natural", "juridica"]).optional(),
     pseId: z.string().optional(),
+    cardHolder: z.string().optional(),
+    cardNumber: z.string().optional(),
+    cardExpiry: z.string().optional(),
+    cardCvv: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.paymentMethod === "card") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Pago con tarjeta no disponible en modo demo",
-        path: ["paymentMethod"],
-      });
+      const holder = data.cardHolder?.trim() ?? "";
+      const number = (data.cardNumber ?? "").replace(/\s+/g, "");
+      const expiry = (data.cardExpiry ?? "").trim();
+      const cvv = (data.cardCvv ?? "").trim();
+
+      if (holder.length < 3) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nombre del titular requerido", path: ["cardHolder"] });
+      }
+      if (!/^\d{13,19}$/.test(number)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Número de tarjeta inválido", path: ["cardNumber"] });
+      }
+      if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(expiry)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Vencimiento inválido (MM/AA)", path: ["cardExpiry"] });
+      }
+      if (!/^\d{3,4}$/.test(cvv)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "CVV inválido", path: ["cardCvv"] });
+      }
       return;
     }
     if (data.paymentMethod === "nequi") {

@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import ProductImage from "../components/ProductImage";
 import Spinner from "../components/Spinner";
+import nequiLogo from "../Assets/logo-nequi.svg";
 
 type NequiFormState = {
   nequiPhone: string;
@@ -18,6 +19,13 @@ type PseFormState = {
   pseBank: string;
   psePersonType: "natural" | "juridica" | "";
   pseId: string;
+};
+
+type CardFormState = {
+  cardHolder: string;
+  cardNumber: string;
+  cardExpiry: string;
+  cardCvv: string;
 };
 
 export default function Checkout() {
@@ -45,6 +53,12 @@ export default function Checkout() {
     pseBank: "",
     psePersonType: "",
     pseId: "",
+  });
+  const [cardForm, setCardForm] = useState<CardFormState>({
+    cardHolder: "",
+    cardNumber: "",
+    cardExpiry: "",
+    cardCvv: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -230,8 +244,24 @@ export default function Checkout() {
     };
 
     if (paymentMethod === "card") {
-      setFormError("Pago con tarjeta no disponible en modo demo.");
-      return;
+      const holder = cardForm.cardHolder.trim();
+      const number = cardForm.cardNumber.replace(/\s+/g, "");
+      const expiry = cardForm.cardExpiry.trim();
+      const cvv = cardForm.cardCvv.trim();
+      const nextErrors: Record<string, string> = {};
+      if (holder.length < 3) nextErrors.cardHolder = "Nombre del titular requerido";
+      if (!/^\d{13,19}$/.test(number)) nextErrors.cardNumber = "Número de tarjeta inválido";
+      if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(expiry)) nextErrors.cardExpiry = "Vencimiento inválido (MM/AA)";
+      if (!/^\d{3,4}$/.test(cvv)) nextErrors.cardCvv = "CVV inválido";
+      if (Object.keys(nextErrors).length > 0) {
+        setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
+        setFormError("Revisa los datos de la tarjeta.");
+        return;
+      }
+      payload.cardHolder = holder;
+      payload.cardNumber = number;
+      payload.cardExpiry = expiry;
+      payload.cardCvv = cvv;
     }
 
     if (paymentMethod === "nequi") {
@@ -280,6 +310,14 @@ export default function Checkout() {
           ...(paymentMethod === "nequi" ? { nequiPhone: nequiForm.nequiPhone } : {}),
           ...(paymentMethod === "pse"
             ? { pseBank: pseForm.pseBank, psePersonType: pseForm.psePersonType as "natural" | "juridica", pseId: pseForm.pseId }
+            : {}),
+          ...(paymentMethod === "card"
+            ? {
+                cardHolder: cardForm.cardHolder.trim(),
+                cardNumber: cardForm.cardNumber.replace(/\s+/g, ""),
+                cardExpiry: cardForm.cardExpiry.trim(),
+                cardCvv: cardForm.cardCvv.trim(),
+              }
             : {}),
         });
         clearCart();
@@ -509,7 +547,7 @@ export default function Checkout() {
                 <div className="relative flex min-w-0 flex-1 flex-col justify-center">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-(--text-primary)">Nequi</span>
-                    <img src="/src/Assets/logo-nequi.svg" alt="Nequi" className="h-10 w-10 max-h-10 max-w-10 shrink-0 object-contain" />
+                    <img src={nequiLogo} alt="Nequi" className="h-10 w-10 max-h-10 max-w-10 shrink-0 object-contain" />
                   </div>
                   <p className="mt-0.5 text-xs leading-tight text-(--text-secondary)">Pago inmediato</p>
                 </div>
@@ -535,11 +573,62 @@ export default function Checkout() {
             </div>
 
             {paymentMethod === "card" && (
-              <div className="animate-fade-in-down animate-duration-200 px-6 pb-6 pt-4 sm:px-8">
-                <div className="flex items-center gap-2 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-2.5 text-sm text-(--text-primary)">
-                  <ShieldCheck className="h-4 w-4 text-amber-400" />
-                  <span>Pago con tarjeta no disponible en modo demo. Usa Nequi o PSE para continuar.</span>
-                </div>
+              <div className="animate-fade-in-down animate-duration-200 grid gap-4 px-6 pb-6 pt-4 sm:grid-cols-2 sm:px-8">
+                <label className="space-y-2 text-sm sm:col-span-2">
+                  <span className="text-(--text-primary)">Nombre del titular</span>
+                  <input
+                    value={cardForm.cardHolder}
+                    onChange={(e) => setCardForm((prev) => ({ ...prev, cardHolder: e.target.value }))}
+                    placeholder="Como aparece en la tarjeta"
+                    className="mt-2 w-full rounded-xl border border-(--border) bg-transparent px-3 py-2 text-(--text-primary) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
+                  />
+                  {fieldErrors.cardHolder && <p className="animate-fade-in text-xs text-danger">{fieldErrors.cardHolder}</p>}
+                </label>
+                <label className="space-y-2 text-sm sm:col-span-2">
+                  <span className="text-(--text-primary)">Número de tarjeta</span>
+                  <input
+                    inputMode="numeric"
+                    value={cardForm.cardNumber}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "").slice(0, 16);
+                      const formatted = digits.replace(/(.{4})/g, "$1 ").trim();
+                      setCardForm((prev) => ({ ...prev, cardNumber: formatted }));
+                    }}
+                    placeholder="1234 5678 9012 3456"
+                    className="mt-2 w-full rounded-xl border border-(--border) bg-transparent px-3 py-2 text-(--text-primary) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
+                  />
+                  {fieldErrors.cardNumber && <p className="animate-fade-in text-xs text-danger">{fieldErrors.cardNumber}</p>}
+                </label>
+                <label className="space-y-2 text-sm">
+                  <span className="text-(--text-primary)">Vencimiento</span>
+                  <input
+                    inputMode="numeric"
+                    value={cardForm.cardExpiry}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      const formatted = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+                      setCardForm((prev) => ({ ...prev, cardExpiry: formatted }));
+                    }}
+                    placeholder="MM/AA"
+                    className="mt-2 w-full rounded-xl border border-(--border) bg-transparent px-3 py-2 text-(--text-primary) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
+                  />
+                  {fieldErrors.cardExpiry && <p className="animate-fade-in text-xs text-danger">{fieldErrors.cardExpiry}</p>}
+                </label>
+                <label className="space-y-2 text-sm">
+                  <span className="text-(--text-primary)">CVV</span>
+                  <input
+                    inputMode="numeric"
+                    value={cardForm.cardCvv}
+                    onChange={(e) => setCardForm((prev) => ({ ...prev, cardCvv: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+                    placeholder="123"
+                    className="mt-2 w-full rounded-xl border border-(--border) bg-transparent px-3 py-2 text-(--text-primary) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
+                  />
+                  {fieldErrors.cardCvv && <p className="animate-fade-in text-xs text-danger">{fieldErrors.cardCvv}</p>}
+                </label>
+                <p className="sm:col-span-2 flex items-center gap-2 text-xs text-(--text-secondary)">
+                  <ShieldCheck className="h-4 w-4 text-(--accent)" />
+                  <span>Pago de demostración: no se realiza ningún cobro real.</span>
+                </p>
               </div>
             )}
 

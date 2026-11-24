@@ -46,6 +46,10 @@ export type CreateCartOrderInput = {
   pseBank?: string;
   psePersonType?: "natural" | "juridica";
   pseId?: string;
+  cardHolder?: string;
+  cardNumber?: string;
+  cardExpiry?: string;
+  cardCvv?: string;
 };
 
 export async function createCartOrder(input: CreateCartOrderInput): Promise<OrderResponse> {
