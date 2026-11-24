@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+client/node_modules
+
+# Build output
+dist
+client/dist
+
+# Git
+.git
+.gitignore
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local DB files
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-wal
+prisma/*.db-shm
+
+# Logs and temp
+*.log
+logs
+tmp
+temp
+*.tmp
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Docs / local artifacts not needed in image
+README.md
+scripts/products-export.json
+scripts/update-catalog.js
+scripts/add-oauth-env.js

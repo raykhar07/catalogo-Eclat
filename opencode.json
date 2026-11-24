@@ -1,0 +1,13 @@
+{
+  "mcp": {
+    "servers": {
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "headers": {
+          "Authorization": "Bearer ctx7sk-4d9831e1-91fb-4689-8296-ec76cd8eefcf"
+        }
+      }
+    }
+  }
+}

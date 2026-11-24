@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String
+  price         Decimal
+  originalPrice Decimal?
+  stock         Int      @default(0)
+  imageUrl      String
+  isPromoted    Boolean  @default(false)
+  brand         String   @default("Sin marca")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  category      Category @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  orders        Order[]
+
+  @@index([brand])
+  @@index([isPromoted])
+  @@index([categoryId])
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  passwordHash  String?
+  role          String    @default("user")
+  emailVerified DateTime?
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
+  accounts      Account[]
+}
+
+model Account {
+  id                Int      @id @default(autoincrement())
+  provider          String
+  providerAccountId String
+  userId            Int
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Order {
+  id              Int      @id @default(autoincrement())
+  orderNumber     String   @unique
+  product         Product  @relation(fields: [productId], references: [id])
+  productId       Int
+  user            User     @relation(fields: [userId], references: [id])
+  userId          Int
+  quantity        Int      @default(1)
+  unitPrice       Decimal
+  total           Decimal
+  buyerName       String
+  buyerEmail      String
+  buyerPhone      String
+  buyerAddress    String
+  buyerCity       String
+  paymentMethod   String   // 'card' | 'nequi' | 'pse'
+  cardBrand       String?
+  cardLast4       String?
+  paymentDetails  String?
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([productId])
+  @@index([orderNumber])
+}
